@@ -28,6 +28,7 @@ functions:
           method: get
           path: todos
           cors: true
+          authorizer: Auth
     iamRoleStatements:
       - Effect: "Allow"        
         Action:
@@ -41,7 +42,11 @@ functions:
       - http:
           method: post
           path: todos
-    iamRoleStatementsName: getTodos-role
+          cors: true
+          authorizer: Auth
+          request:
+            schemas:
+              application/json: ${file(src/models/create-todo-request.json)}
     iamRoleStatements:
       - Effect: "Allow"
         Action: 
