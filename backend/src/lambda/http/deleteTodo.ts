@@ -16,6 +16,18 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   const todoId = event.pathParameters.todoId
   const userId = getUserId(event)
 
+  const validTodoId = await todoExists(todoId, userId)
+
+  if (!validTodoId) {
+    logger.warn("Do not exist, todoId: " + todoId)
+    return {
+      statusCode: 404,
+      body: JSON.stringify({
+        error: 'Todo does not exist'
+      })
+    }
+  }
+
   logger.info('Deleting todo: ' + todoId)
 
   await deleteTodo(todoId, userId)
@@ -30,6 +42,20 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   }
 }
 
+async function todoExists(todoId: string, userId: string) {
+  const result = await docClient
+    .get({
+      TableName: todosTable,
+      Key: {
+        todoId: todoId,
+        userId: userId
+      }
+    })
+    .promise()
+
+  logger.info('Get todo: ' + todoId)
+  return !!result.Item
+}
 async function deleteTodo(todoId: string, userId: string) {
 
   const params = {
