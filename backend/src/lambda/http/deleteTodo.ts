@@ -1,11 +1,9 @@
 import 'source-map-support/register'
 import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
-import * as AWS from 'aws-sdk'
 import { createLogger } from '../../utils/logger'
 import { getUserId } from '../utils'
+import { deleteTodo, todoExists } from '../../businessLogic/todos'
 
-const docClient = new AWS.DynamoDB.DocumentClient
-const todosTable = process.env.TODOS_TABLE
 
 const logger = createLogger('deleteTodo')
 
@@ -16,7 +14,8 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   const todoId = event.pathParameters.todoId
   const userId = getUserId(event)
 
-  const validTodoId = await todoExists(todoId, userId)
+  const validTodoId: Boolean = await todoExists(todoId, userId)
+  logger.info('Todo exists: ' + validTodoId)
 
   if (!validTodoId) {
     logger.warn("Do not exist, todoId: " + todoId)
@@ -28,9 +27,8 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     }
   }
 
-  logger.info('Deleting todo: ' + todoId)
-
   await deleteTodo(todoId, userId)
+  logger.info('Deleted todo: ' + todoId)
 
   return {
     statusCode: 201,
@@ -40,34 +38,4 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     },
     body: ''
   }
-}
-
-async function todoExists(todoId: string, userId: string) {
-  const result = await docClient
-    .get({
-      TableName: todosTable,
-      Key: {
-        todoId: todoId,
-        userId: userId
-      }
-    })
-    .promise()
-
-  logger.info('Get todo: ' + todoId)
-  return !!result.Item
-}
-async function deleteTodo(todoId: string, userId: string) {
-
-  const params = {
-    TableName: todosTable,
-    Key: {
-      "userId": userId,
-      "todoId": todoId
-    }
-  };
-
-  await docClient.delete(params, function (err, data) {
-    if (err) logger.error(err);
-    else logger.info("Delete Success " + data)
-  }).promise()
 }

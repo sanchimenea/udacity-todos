@@ -10,7 +10,6 @@ import { CreateTodoRequest } from '../requests/CreateTodoRequest'
 const todosAccess = new TodoAccess()
 
 export async function getTodosByUser(userId: string): Promise<TodoItem[]> {
-
     return await todosAccess.getTodosByUser(userId)
 }
 
@@ -29,4 +28,13 @@ export async function createTodo(userId: string, newTodo: CreateTodoRequest) {
     delete newItem.userId
 
     return newItem
+}
+
+export async function todoExists(todoId: string, userId: string) {
+    return await todosAccess.todoExists(todoId, userId)
+}
+
+export async function deleteTodo(todoId: string, userId: string) {
+    return await todosAccess.deleteTodo(todoId, userId)
+
 }
