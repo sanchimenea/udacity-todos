@@ -5,6 +5,8 @@ import { TodoAccess } from '../dataLayer/todosAccess'
 
 import * as uuid from 'uuid'
 import { CreateTodoRequest } from '../requests/CreateTodoRequest'
+import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
+import { TodoUpdateParams } from '../models/TodoUpdateParam'
 
 
 const todosAccess = new TodoAccess()
@@ -37,4 +39,23 @@ export async function todoExists(todoId: string, userId: string) {
 export async function deleteTodo(todoId: string, userId: string) {
     return await todosAccess.deleteTodo(todoId, userId)
 
+}
+
+export async function updateTodo(updatedTodo: UpdateTodoRequest, todoId: string, userId: string) {
+    const params: TodoUpdateParams = {
+        Key: {
+            "userId": userId,
+            "todoId": todoId
+        },
+        UpdateExpression: "set #n = :name, dueDate = :dueDate, done = :done",
+        ExpressionAttributeNames: {
+            "#n": "name"
+        },
+        ExpressionAttributeValues: {
+            ":name": updatedTodo.name,
+            ":dueDate": updatedTodo.dueDate,
+            ":done": updatedTodo.done
+        }
+    };
+    return await todosAccess.updateTodo(params)
 }

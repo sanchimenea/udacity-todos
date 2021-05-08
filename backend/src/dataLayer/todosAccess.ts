@@ -2,6 +2,7 @@ import * as AWS from 'aws-sdk'
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 
 import { TodoItem } from '../models/TodoItem'
+import { TodoUpdateParams } from '../models/TodoUpdateParam'
 // import { TodoUpdate } from '../models/TodoUpdate'
 import { createLogger } from '../utils/logger'
 
@@ -65,6 +66,19 @@ export class TodoAccess {
             if (err) logger.error(err);
             else logger.info("Delete Success " + data)
         }).promise()
+    }
+
+    async updateTodo(params: TodoUpdateParams) {
+
+        await this.docClient.update(
+            {
+                TableName: this.todosTable,
+                ...params
+            }, function (err, data) {
+                if (err) logger.error(err);
+                else logger.info("Success " + data)
+            }).promise()
+
     }
 
 }

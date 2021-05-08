@@ -1,12 +1,10 @@
 import 'source-map-support/register'
 import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
 import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest'
-import * as AWS from 'aws-sdk'
 import { createLogger } from '../../utils/logger'
 import { getUserId } from '../utils'
+import { todoExists, updateTodo } from '../../businessLogic/todos'
 
-const docClient = new AWS.DynamoDB.DocumentClient
-const todosTable = process.env.TODOS_TABLE
 
 const logger = createLogger('updateTodo')
 
@@ -15,7 +13,9 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
   const todoId = event.pathParameters.todoId
   const userId = getUserId(event)
-  const validTodoId = await todoExists(todoId, userId)
+
+  const validTodoId: Boolean = await todoExists(todoId, userId)
+  logger.info('Todo exists: ' + validTodoId)
 
   if (!validTodoId) {
     logger.warn("Do not exist, todoId: " + todoId)
@@ -28,7 +28,6 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   }
 
   const updatedTodo: UpdateTodoRequest = JSON.parse(event.body)
-
   logger.info("Update todoId: " + todoId, "Update values: " + updatedTodo)
 
   await updateTodo(updatedTodo, todoId, userId)
@@ -43,43 +42,4 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   }
 }
 
-async function todoExists(todoId: string, userId: string) {
-  const result = await docClient
-    .get({
-      TableName: todosTable,
-      Key: {
-        todoId: todoId,
-        userId: userId
-      }
-    })
-    .promise()
 
-  logger.info('Get todo: ' + todoId)
-  return !!result.Item
-}
-
-async function updateTodo(updatedTodo: UpdateTodoRequest, todoId: string, userId: string) {
-
-  const params = {
-    TableName: todosTable,
-    Key: {
-      "userId": userId,
-      "todoId": todoId
-    },
-    UpdateExpression: "set #n = :name, dueDate = :dueDate, done = :done",
-    ExpressionAttributeNames: {
-      "#n": "name"
-    },
-    ExpressionAttributeValues: {
-      ":name": updatedTodo.name,
-      ":dueDate": updatedTodo.dueDate,
-      ":done": updatedTodo.done
-    }
-  };
-
-  await docClient.update(params, function (err, data) {
-    if (err) logger.error(err);
-    else logger.info("Success " + data)
-  }).promise()
-
-}
