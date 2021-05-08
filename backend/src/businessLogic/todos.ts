@@ -1,9 +1,7 @@
-import { TodoItem } from '../models/TodoItem'
-// import { TodoUpdate } from '../models/TodoUpdate'
-
-import { TodoAccess } from '../dataLayer/todosAccess'
-
 import * as uuid from 'uuid'
+
+import { TodoItem } from '../models/TodoItem'
+import { TodoAccess } from '../dataLayer/todosAccess'
 import { CreateTodoRequest } from '../requests/CreateTodoRequest'
 import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
 import { TodoUpdateParams } from '../models/TodoUpdateParam'
@@ -57,5 +55,20 @@ export async function updateTodo(updatedTodo: UpdateTodoRequest, todoId: string,
             ":done": updatedTodo.done
         }
     };
+    return await todosAccess.updateTodo(params)
+}
+
+export async function addUrlTodo(todoId: string, userId: string, attachmentUrl: string) {
+    const params: TodoUpdateParams = {
+        Key: {
+            "userId": userId,
+            "todoId": todoId
+        },
+        UpdateExpression: "set attachmentUrl = :attachmentUrl",
+        ExpressionAttributeValues: {
+            ":attachmentUrl": attachmentUrl
+        }
+    };
+
     return await todosAccess.updateTodo(params)
 }

@@ -3,7 +3,6 @@ import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 
 import { TodoItem } from '../models/TodoItem'
 import { TodoUpdateParams } from '../models/TodoUpdateParam'
-// import { TodoUpdate } from '../models/TodoUpdate'
 import { createLogger } from '../utils/logger'
 
 const logger = createLogger('todosAccess')
