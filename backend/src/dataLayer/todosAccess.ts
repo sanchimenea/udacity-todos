@@ -3,9 +3,9 @@ import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 
 import { TodoItem } from '../models/TodoItem'
 // import { TodoUpdate } from '../models/TodoUpdate'
-import { createLogger } from '../utils/logger'
+// import { createLogger } from '../utils/logger'
 
-const logger = createLogger('todosAccess')
+// const logger = createLogger('todosAccess')
 
 export class TodoAccess {
 
@@ -15,7 +15,6 @@ export class TodoAccess {
     ) { }
 
     async getTodosByUser(userId: string): Promise<TodoItem[]> {
-        logger.info("Getting all todos of user: " + userId)
         const result = await this.docClient.query({
             TableName: this.todosTable,
             KeyConditionExpression: 'userId = :userId',
@@ -27,6 +26,15 @@ export class TodoAccess {
 
         const items = result.Items
         return items as TodoItem[]
+    }
+
+    async createTodo(newItem: TodoItem): Promise<TodoItem> {
+        await this.docClient.put({
+            TableName: this.todosTable,
+            Item: newItem
+        }).promise()
+
+        return newItem
     }
 
 }
