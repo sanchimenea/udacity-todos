@@ -3,9 +3,9 @@ import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 
 import { TodoItem } from '../models/TodoItem'
 // import { TodoUpdate } from '../models/TodoUpdate'
-// import { createLogger } from '../utils/logger'
+import { createLogger } from '../utils/logger'
 
-// const logger = createLogger('todosAccess')
+const logger = createLogger('todosAccess')
 
 export class TodoAccess {
 
@@ -35,6 +35,36 @@ export class TodoAccess {
         }).promise()
 
         return newItem
+    }
+
+    async todoExists(todoId: string, userId: string) {
+        const result = await this.docClient
+            .get({
+                TableName: this.todosTable,
+                Key: {
+                    todoId: todoId,
+                    userId: userId
+                }
+            }).promise()
+
+        logger.info('Get todo: ' + todoId)
+        return !!result.Item
+    }
+
+    async deleteTodo(todoId: string, userId: string) {
+
+        const params = {
+            TableName: this.todosTable,
+            Key: {
+                "userId": userId,
+                "todoId": todoId
+            }
+        };
+
+        await this.docClient.delete(params, function (err, data) {
+            if (err) logger.error(err);
+            else logger.info("Delete Success " + data)
+        }).promise()
     }
 
 }
